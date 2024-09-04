@@ -1,7 +1,7 @@
-import * as net from "net"
+import { Socket } from "net";
 
 export type TCPConn = {
-    socket: net.Socket;
+    socket: Socket;
     err: null | Error;
     ended: boolean;
     reader: null | {

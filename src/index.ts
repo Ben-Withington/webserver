@@ -1,8 +1,8 @@
-import * as net from "net"
+import { Socket, createServer } from "net";
 
 import type { TCPConn } from "./types";
 
-function soInit(socket: net.Socket): TCPConn {
+function soInit(socket: Socket): TCPConn {
     const conn: TCPConn = {
         socket: socket,
         err: null,
@@ -75,7 +75,7 @@ function soWrite(conn: TCPConn, data: Buffer): Promise<void> {
     });
 }
 
-async function serveClient(socket: net.Socket): Promise<void> {
+async function serveClient(socket: Socket): Promise<void> {
     const conn: TCPConn = soInit(socket);
 
     while(true) {
@@ -91,7 +91,7 @@ async function serveClient(socket: net.Socket): Promise<void> {
     }
 }
 
-async function newConn(socket: net.Socket): Promise<void> {
+async function newConn(socket: Socket): Promise<void> {
     console.log('new connection', socket.remoteAddress, socket.remotePort);
 
     try {
@@ -103,7 +103,7 @@ async function newConn(socket: net.Socket): Promise<void> {
     }
 }
 
-const server = net.createServer({
+const server = createServer({
     pauseOnConnect: true,
 });
 
