@@ -1,6 +1,7 @@
 import { Socket, createServer } from "net";
 
-import type { TCPConn } from "./types";
+import { cutMessage, bufferPush } from "./dynamic_buffer";
+import type { TCPConn, DynamicBuffer } from "./types";
 
 function soInit(socket: Socket): TCPConn {
     const conn: TCPConn = {
@@ -77,17 +78,32 @@ function soWrite(conn: TCPConn, data: Buffer): Promise<void> {
 
 async function serveClient(socket: Socket): Promise<void> {
     const conn: TCPConn = soInit(socket);
+    const buffer: DynamicBuffer = { data: Buffer.alloc(0), length: 0 };
 
     while(true) {
-        const data = await soRead(conn);
-        if(data.length === 0 || data.includes('q')) {
-            console.log('end connection');
-            conn.socket.end();
-            break;
+        const message: null | Buffer = cutMessage(buffer);
+
+        if(!message) {
+            const data: Buffer = await soRead(conn);
+            bufferPush(buffer, data);
+
+            if(data.length === 0) {
+                console.log('end connection');
+                conn.socket.end();
+                return;
+            }
+
+            continue;
         }
 
-        console.log('data', data);
-        await soWrite(conn, data);
+        if(message.equals(Buffer.from('quit\n'))) {
+            await soWrite(conn, Buffer.from('Bye.\n'));
+            socket.destroy();
+            return;
+        } else {
+            const reply = Buffer.concat([Buffer.from('Echo: '), message])
+            await soWrite(conn, reply);
+        }
     }
 }
 

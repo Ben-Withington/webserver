@@ -9,3 +9,8 @@ export type TCPConn = {
         reject: (reason: Error) => void,
     };
 };
+
+export type DynamicBuffer = {
+    data: Buffer;
+    length: number;
+};
